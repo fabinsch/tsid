@@ -42,6 +42,7 @@ namespace tsid
         .def("append", &T::append_eq, bp::arg("data"))
         .def("append", &T::append_ineq, bp::arg("data"))
         .def("append", &T::append_bound, bp::arg("data"))  
+        .def("get", &T::get_, bp::return_internal_reference<>())  
         ;
       }
        
@@ -68,6 +69,7 @@ namespace tsid
         .def("print_all", &T::print)
         .def("resize", &T::resize, bp::arg("i"))
         .def("append", &T::append_helper, bp::arg("constraintLevel"))  
+        .def("get", &T::get_, bp::args("idx0", "idx1"), bp::return_internal_reference<>())  
         ;
       }
        
@@ -81,6 +83,30 @@ namespace tsid
       }
     };
 
+    template<typename T>
+    struct PairPythonVisitor
+    : public boost::python::def_visitor< PairPythonVisitor<T> >
+    {
+      template<class PyClass>     
+
+      void visit(PyClass& cl) const
+      {
+        cl
+        .def(bp::init<double, std::shared_ptr<math::ConstraintBase> >("Constructor"))
+        .def_readonly("first", &T::first)
+        .def_readonly("second", &T::second)
+        ;
+      }
+
+      static void expose(const std::string & class_name)
+      {
+        std::string doc = "Aligned pair.";
+        bp::class_<T>(class_name.c_str(),
+                          doc.c_str(),
+                          bp::no_init)
+        .def(PairPythonVisitor<T>());       
+      }
+    };
   }
 }
 

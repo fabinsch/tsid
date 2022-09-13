@@ -79,6 +79,9 @@ namespace tsid
       T1 first;
       T2 second;
       
+      bool operator==(const aligned_pair & other) const
+        { return first == other.first && second == other.second; } 
+
     };
     
     template<typename T1, typename T2>

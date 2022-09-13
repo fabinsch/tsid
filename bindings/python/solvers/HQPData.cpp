@@ -25,6 +25,8 @@ namespace tsid
     void exposeConstraintLevel()
     {
       ConstPythonVisitor<ConstraintLevels>::expose("ConstraintLevel");
+      PairPythonVisitor<solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> >>::expose("AlignedPair");
+      boost::python::register_ptr_to_python<std::shared_ptr<tsid::math::ConstraintBase>>();
     }
     void exposeHQPData()
     {
