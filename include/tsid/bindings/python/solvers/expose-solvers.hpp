@@ -20,7 +20,9 @@
 
 
 #include "tsid/bindings/python/solvers/solver-HQP-eiquadprog.hpp"
-#include "tsid/bindings/python/solvers/HQPData.hpp"
+// #include "tsid/bindings/python/solvers/HQPData.hpp"
+#include "tsid/bindings/python/utils/container.hpp"
+
 #include "tsid/bindings/python/solvers/HQPOutput.hpp"
 namespace tsid
 {

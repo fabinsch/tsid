@@ -63,6 +63,7 @@ HQPData.append(const1)
 HQPData.append(const2)
 print("Check HQP DATA")
 HQPData.print_all()
+exit(0)
 
 gradientPerturbations = []
 hessianPerturbations = []

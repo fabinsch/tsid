@@ -85,6 +85,10 @@ void ContactPoint::updateForceInequalityConstraints()
   ub(n_in-1)    = m_fMax;
   lb(n_in-1)    = m_fMin;
 
+  // std::cout << "B:" << B << std::endl;
+  // std::cout << "ub:" << ub << std::endl;
+  // std::cout << "lb:" << lb << std::endl;
+
   m_forceInequality.setMatrix(B);
   m_forceInequality.setLowerBound(lb);
   m_forceInequality.setUpperBound(ub);

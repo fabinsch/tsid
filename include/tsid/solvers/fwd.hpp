@@ -79,6 +79,12 @@ namespace tsid
       T1 first;
       T2 second;
       
+      bool operator==(const aligned_pair & other) const
+        { return first == other.first && second == other.second; } 
+
+      // std::shared_ptr<math::ConstraintInequality> & get_ineq(){
+      //   return static_cast<std::shared_ptr<math::ConstraintInequality>>(second);
+      // }
     };
     
     template<typename T1, typename T2>
@@ -91,6 +97,7 @@ namespace tsid
     typedef pinocchio::container::aligned_vector<ConstraintLevel> HQPData;
     typedef pinocchio::container::aligned_vector<ConstConstraintLevel> ConstHQPData;
     
+    typedef std::vector<math::ConstraintBase> ConstraintData;
     
   }
 }

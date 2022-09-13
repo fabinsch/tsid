@@ -23,7 +23,9 @@
 #include <pinocchio/bindings/python/utils/deprecation.hpp>
 
 #include "tsid/formulations/inverse-dynamics-formulation-acc-force.hpp"
-#include "tsid/bindings/python/solvers/HQPData.hpp"
+// #include "tsid/bindings/python/solvers/HQPData.hpp"
+#include "tsid/bindings/python/utils/container.hpp"
+
 #include "tsid/contacts/contact-6d.hpp"
 #include "tsid/contacts/contact-point.hpp"
 #include "tsid/tasks/task-joint-posture.hpp"

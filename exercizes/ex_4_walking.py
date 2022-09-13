@@ -70,7 +70,9 @@ q, v = tsid.q, tsid.v
 
 for i in range(-N_pre, N+N_post):
     time_start = time.time()
-    
+    HQPData_ = tsid.formulation.computeProblemData(t, q, v)
+    HQPData_.print_all()
+    breakpoint()    
     if i==0:
         print("Starting to walk (remove contact left foot)")
         tsid.remove_contact_LF()
@@ -93,6 +95,9 @@ for i in range(-N_pre, N+N_post):
         tsid.set_RF_3d_ref(x_RF_ref[:,i], dx_RF_ref[:,i], ddx_RF_ref[:,i])
     
     HQPData = tsid.formulation.computeProblemData(t, q, v)
+    HQPData.print_all()
+
+    exit(0)
 
     sol = tsid.solver.solve(HQPData)
     if(sol.status!=0):

@@ -36,7 +36,19 @@ namespace tsid
     class ConstraintLevels
     {
     public:
-        ConstraintLevels(){}
+        ConstraintLevels(){
+        // ConstraintLevels():m_test_aligned_pair(1.0, make_shared<math::ConstraintInequality>("test")){
+            // m_test.push_back(1.0);
+            // m_test.push_back(1.0);
+            // m_test_aligned.push_back(1.0);
+            // m_test_aligned.push_back(1.0);
+            // m_test_aligned.push_back(1.0);
+            // double test_d = 1.0;
+            // math::ConstraintInequality c = math::ConstraintInequality::ConstraintInequality('test');
+            // std::shared_ptr<math::ConstraintBase> > test_c = make_shared<math::ConstraintBase>(c);
+            // m_test_aligned_pair = solvers::make_pair<double, std::shared_ptr<math::ConstraintBase> >(test_d, test_c);
+            // m_test_aligned_pointer.push_back(std::make_shared<double>(1.0));
+            }
         ~ConstraintLevels(){}
 
         inline void print (){
@@ -55,10 +67,61 @@ namespace tsid
             }
             cout << ss.str() << endl;
         }
-        inline ConstraintLevel& get (){
+        // const solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> > & get_test_aligned_pair () const {
+        //     return m_test_aligned_pair;
+        // }
+        ConstraintLevel& get (){
             return m_std_const;
         }
+
+        solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> > & get_(const size_t index) {
+            if (index >= size(m_std_const))
+                throw std::runtime_error("index out of bounds");
+            return m_std_const[index];
+        }
+
+
+        // void get_constraint_vector (){
+        //     stringstream ss;
+
+        //     std::vector<math::ConstraintInequality> ineqVec;
+        //     std::vector<std::shared_ptr<math::ConstraintEquality>> eqVec;
+        //     std::vector<math::ConstraintBase> baseVec;
+        //     for(ConstraintLevel::const_iterator iit=m_std_const.begin(); iit!=m_std_const.end(); iit++)
+        //     {
+        //         auto c = iit->second;
+        //         // ss<<" - "<<c->name()<<": w="<<iit->first<<", ";
+        //         if(c->isEquality()){
+                    
+        //         }
+            
+        //             // ss<<"equality, ";
+
+        //             // eqVec.push_back(static_cast<std::shared_ptr<math::ConstraintEquality>>(c));
+        //             // baseVec.push_back(static_cast<std::shared_ptr<math::ConstraintEquality>>(c));
+        //             baseVec.push_back((c[0]));
+        //         // else if(c->isInequality())
+        //         //     // ss<<"inequality, ";
+        //         //     ineqVec.push_back(*c);
+        //         // else
+        //         //     // ss<<"bound, ";
+        //         // ss<<c->rows()<<"x"<<c->cols()<<endl;
+        //     }
+        //     // return cv;
+        // }
+
+        // const std::vector<double> & get_test () const {
+        //     return m_test;
+        // }
+
+        // const pinocchio::container::aligned_vector<double> & get_test_aligned () const {
+        //     return m_test_aligned;
+        // }
     
+        // const pinocchio::container::aligned_vector<std::shared_ptr<double> > & get_test_aligned_pointer () const {
+        //     return m_test_aligned_pointer;
+        // }
+
         inline void append_eq (double num, std::shared_ptr<math::ConstraintEquality> i){
            m_std_const.push_back(solvers::make_pair<double, std::shared_ptr<math::ConstraintBase> >(num, i));
         }
@@ -68,8 +131,15 @@ namespace tsid
         inline void append_bound (double num, std::shared_ptr<math::ConstraintBound> i){
            m_std_const.push_back(solvers::make_pair<double, std::shared_ptr<math::ConstraintBase> >(num, i));
         }
+
+        // bool operator==(const ConstraintLevels & other) const
+        // { return true; }
+
     private:
         ConstraintLevel m_std_const;
+    //     std::vector<double> m_test;
+    //     pinocchio::container::aligned_vector<double> m_test_aligned;
+    //     solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> > m_test_aligned_pair;
     };
 
     class HQPDatas
@@ -117,6 +187,14 @@ namespace tsid
         inline bool set (HQPData data){
             m_std_hqp = data;
             return true;
+        }
+
+        solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> > & get_(const size_t idx0, const size_t idx1) {
+            if (idx0 >= size(m_std_hqp))
+                throw std::runtime_error("index out of bounds");
+            if (idx1 >= size(m_std_hqp[idx0]))
+                throw std::runtime_error("index out of bounds");
+            return m_std_hqp[idx0][idx1];
         }
     
     private:

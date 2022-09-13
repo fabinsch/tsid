@@ -93,6 +93,9 @@ BOOST_AUTO_TEST_CASE ( test_contact_6d )
   Vector f(12);
   f3 << 0.0, 0.0, 100.0;
   f << f3, f3, f3, f3;
+  std::cout << "f:" << f << std::endl;
+  std::cout << "(forceIneq.matrix()*f).array(): " << (forceIneq.matrix()*f).array() << std::endl;
+  std::cout << "forceIneq.upperBound(): " << forceIneq.upperBound() << std::endl;
   BOOST_CHECK(forceIneq.checkConstraint(f));
   BOOST_CHECK(((forceIneq.matrix()*f).array() <= forceIneq.upperBound().array()).all());
   BOOST_CHECK(((forceIneq.matrix()*f).array() >= forceIneq.lowerBound().array()).all());

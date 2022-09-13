@@ -65,6 +65,7 @@ for i in range(0, N):
     tsid.eeTask.setReference(sampleEE)
 
     HQPData = tsid.formulation.computeProblemData(t, q[:,i], v[:,i])
+    exit(0)
     # if i == 0: HQPData.print_all()
 
     sol = tsid.solver.solve(HQPData)
