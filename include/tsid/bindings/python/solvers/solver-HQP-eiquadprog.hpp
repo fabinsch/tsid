@@ -22,6 +22,8 @@
 
 #include "tsid/solvers/solver-HQP-eiquadprog.hpp"
 #include "tsid/solvers/solver-HQP-eiquadprog-fast.hpp"
+#include "tsid/solvers/solver-proxqp.hpp"
+
 #include "tsid/solvers/solver-HQP-output.hpp"
 #include "tsid/solvers/fwd.hpp"
 #include "tsid/bindings/python/utils/container.hpp"
@@ -42,7 +44,6 @@ namespace tsid
       {
         cl
         .def(bp::init<std::string>((bp::arg("name")), "Default Constructor with name"))
-        
         .def("resize", &SolverHQuadProgPythonVisitor::resize, bp::args("n", "neq", "nin"))
         .add_property("ObjVal", &Solver::getObjectiveValue, "return obj value")
         .def("solve", &SolverHQuadProgPythonVisitor::solve, bp::args("HQPData"))
@@ -51,16 +52,16 @@ namespace tsid
         ;
       }
        
-      static void resize(Solver & self, unsigned int n, unsigned int neq, unsigned int nin){
-          self.resize(n, neq, nin);
+      static bool resize(Solver & self, unsigned int n, unsigned int neq, unsigned int nin){
+          return self.resize(n, neq, nin);
       }  
-      static solvers::HQPOutput solve(Solver & self, const solvers::HQPData & problemData){
-          solvers::HQPOutput output;
+      static solvers::HQPGenericOutput solve(Solver & self, const solvers::HQPData & problemData){
+          solvers::HQPGenericOutput output;
           output = self.solve(problemData);
           return output;
       }
-      static solvers::HQPOutput solver_helper(Solver & self, HQPDatas & HQPDatas){
-          solvers::HQPOutput output;
+      static solvers::HQPGenericOutput solver_helper(Solver & self, HQPDatas & HQPDatas){
+          solvers::HQPGenericOutput output;
           solvers::HQPData data = HQPDatas.get();
 
           output = self.solve(data);

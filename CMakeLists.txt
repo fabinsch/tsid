@@ -135,6 +135,7 @@ set(${PROJECT_NAME}_SOLVERS_HEADERS
     include/tsid/solvers/solver-HQP-factory.hpp
     include/tsid/solvers/solver-HQP-factory.hxx
     include/tsid/solvers/solver-HQP-qpoases.hpp
+    include/tsid/solvers/solver-proxqp.hpp  # todo just include when proxqp found
     include/tsid/solvers/solver-HQP-eiquadprog.hpp
     include/tsid/solvers/solver-HQP-eiquadprog-rt.hpp
     include/tsid/solvers/solver-HQP-eiquadprog-rt.hxx
@@ -214,9 +215,10 @@ set(${PROJECT_NAME}_TRAJECTORIES_SOURCES
 set(${PROJECT_NAME}_SOLVERS_SOURCES
     src/solvers/solver-HQP-base.cpp
     src/solvers/solver-HQP-factory.cpp
-    src/solvers/solver-HQP-eiquadprog.cpp
+    # src/solvers/solver-HQP-eiquadprog.cpp
     src/solvers/solver-HQP-eiquadprog-fast.cpp
-    src/solvers/solver-HQP-qpoases.cpp
+    src/solvers/solver-proxqp.cpp
+    # src/solvers/solver-HQP-qpoases.cpp
     src/solvers/utils.cpp)
 
 if(qpmad_FOUND)

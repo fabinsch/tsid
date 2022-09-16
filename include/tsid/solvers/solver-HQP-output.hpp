@@ -20,16 +20,22 @@
 
 #include "tsid/solvers/fwd.hpp"
 #include "tsid/math/fwd.hpp"
+#include <proxsuite/proxqp/results.hpp>
 
 #include <vector>
-
 
 namespace tsid
 {
   namespace solvers
   {
     
-    class HQPOutput
+    class HQPGenericOutput
+    {
+    public:
+      HQPGenericOutput(){}
+    };
+
+    class HQPOutput : public HQPGenericOutput
     {
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -57,6 +63,23 @@ namespace tsid
         activeSet.resize(nInCon);
       }
     };
+
+    class ProxQPOutput : public HQPGenericOutput
+    {
+    public:
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+      proxsuite::proxqp::Results<double> results;
+      
+          
+      ProxQPOutput(){}
+      
+      // ProxQPOutput(int nVars, int nEqCon, int nInCon)
+      // {
+      //   m_output(nVars, nEqCon, nInCon);
+      // }
+      
+    };
+
   }
 }
 

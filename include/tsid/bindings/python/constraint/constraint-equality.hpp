@@ -16,8 +16,8 @@
 //
 
 
-#ifndef __tsid_python_constriant_equality_hpp__
-#define __tsid_python_constriant_equality_hpp__
+#ifndef __tsid_python_constraint_equality_hpp__
+#define __tsid_python_constraint_equality_hpp__
 
 #include "tsid/bindings/python/fwd.hpp"
 
@@ -70,10 +70,12 @@ namespace tsid
       static void expose(const std::string & class_name)
       {
         std::string doc = "Constraint Equality info.";
-        bp::class_<ConstraintEquality>(class_name.c_str(),
+        bp::class_<ConstraintEquality, bp::bases<math::ConstraintBase>>(class_name.c_str(),
                           doc.c_str(),
                           bp::no_init)
-        .def(ConstraintEqPythonVisitor<ConstraintEquality>());
+        .def(bp::init<std::string, Eigen::MatrixXd, Eigen::VectorXd>((bp::arg("name"), bp::arg("A"), bp::arg("b")), "Default constructor with name and constraint."));
+        
+        // .def(ConstraintEqPythonVisitor<ConstraintEquality>());
         
         eigenpy::enableEigenPySpecific<Eigen::MatrixXd>();
       }
@@ -82,4 +84,4 @@ namespace tsid
 }
 
 
-#endif // ifndef __tsid_python_constriant_equality_hpp__
+#endif // ifndef __tsid_python_constraint_equality_hpp__

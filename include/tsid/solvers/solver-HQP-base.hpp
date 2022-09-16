@@ -44,17 +44,30 @@ namespace tsid
       typedef math::RefVector RefVector;
       typedef math::ConstRefVector ConstRefVector;
       typedef math::ConstRefMatrix ConstRefMatrix;
+      typedef math::ConstraintInequality ConstraintInequality;
 
       SolverHQPBase(const std::string & name);
       virtual ~SolverHQPBase() {};
 
       virtual const std::string & name() { return m_name; }
 
-      virtual void resize(unsigned int n, unsigned int neq, unsigned int nin) = 0;
+      virtual bool resize(unsigned int n, unsigned int neq, unsigned int nin);
+
+      /** function to treat inequalitiy constraints differently, depending if unilateral or not */
+      virtual void resizeIneq(unsigned int n, unsigned int nin);
+      virtual void setIneq(unsigned int & i_in, const std::shared_ptr<math::ConstraintBase> constr);
+      virtual void setBounds(unsigned int & i_in, const std::shared_ptr<math::ConstraintBase> constr);
+
+
+      virtual void sendMsg(const std::string & s) = 0;
+
 
       /** Solve the specified Hierarchical Quadratic Program.
        */
-      virtual const HQPOutput & solve(const HQPData & problemData) = 0;
+      virtual const HQPGenericOutput & solve(const HQPData & problemData) = 0;
+
+      virtual void retrieveQPData(const HQPData & problemData, 
+                                  const bool hessianRegularization = true);
 
       /** Get the objective value of the last solved problem. */
       virtual double getObjectiveValue() = 0;
@@ -82,6 +95,13 @@ namespace tsid
       int                   m_maxIter;        // max number of iterations
       double                m_maxTime;        // max time to solve the HQP [s]
       HQPOutput             m_output;
+
+      unsigned int m_neq;  /// number of equality constraints
+      unsigned int m_nin;  /// number of inequality constraints
+      unsigned int m_n;    /// number of variables
+
+      QPDataTpl<double> m_qpData;
+
     };
 
   }

@@ -22,6 +22,8 @@
 
 #include "tsid/solvers/solver-HQP-output.hpp"
 
+using namespace tsid::solvers;
+
 namespace tsid
 {
   namespace python
@@ -37,21 +39,28 @@ namespace tsid
       void visit(PyClass& cl) const
       {
         cl
-        .def(bp::init<>("Defulat Constructor"))
+        .def(bp::init<>("Default Constructor"))
         .def(bp::init<int, int, int>((bp::args("nVars", "nEq", "nInCon"))))
-        .add_property("x", &HQPOutputPythonVisitor::x)
+        // .add_property("x", &HQPOutputPythonVisitor::x)
+        .def_readwrite("x", &solvers::HQPOutput::x)
+
         .add_property("status", &HQPOutputPythonVisitor::status)
         ;
       }
-      static Eigen::VectorXd x (const T & self) {return self.x;}
+      // static Eigen::VectorXd x (T & self) {return self.x;}
       static int status (const T & self) {return self.status;}
       static void expose(const std::string & class_name)
       {
+        bp::class_<HQPGenericOutput>("HQPGenericOutput");
+
         std::string doc = "HQPOutput info.";
-        bp::class_<T>(class_name.c_str(),
+        bp::class_<T, bp::bases<HQPGenericOutput>>(class_name.c_str(),
                           doc.c_str(),
                           bp::no_init)
         .def(HQPOutputPythonVisitor<T>());       
+
+        bp::class_<ProxQPOutput, bp::bases<HQPGenericOutput>>("ProxQPOutput")
+        .def_readonly("results", &ProxQPOutput::results, "Results");
       }
     };
   }

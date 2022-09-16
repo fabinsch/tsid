@@ -60,8 +60,11 @@ namespace tsid
     struct HQPPythonVisitor
     : public boost::python::def_visitor< HQPPythonVisitor<T> >
     {
-      template<class PyClass>     
+      typedef solvers::QPGenericDataTpl<double> qpGenericData;
+      typedef solvers::QPDataTpl<double> qpData;
+      typedef solvers::QPEigquadprogDataTpl<double> qpEigquadprogData;
 
+      template<class PyClass>     
       void visit(PyClass& cl) const
       {
         cl
@@ -70,6 +73,8 @@ namespace tsid
         .def("resize", &T::resize, bp::arg("i"))
         .def("append", &T::append_helper, bp::arg("constraintLevel"))  
         .def("get", &T::get_, bp::args("idx0", "idx1"), bp::return_internal_reference<>())  
+        // .def("get", &T::get, bp::return_internal_reference<>())  
+        .def("get", &T::get)  
         ;
       }
        
@@ -79,7 +84,22 @@ namespace tsid
         bp::class_<T>(class_name.c_str(),
                           doc.c_str(),
                           bp::no_init)
-        .def(HQPPythonVisitor<T>());       
+        .def(HQPPythonVisitor<T>());     
+
+        bp::class_<qpGenericData>("qpGenericData")
+        .def_readonly("H", &qpGenericData::H, "Cost matrix")
+        .def_readonly("g", &qpGenericData::g)
+        .def_readonly("CE", &qpGenericData::CE, "Equality constraint matrix")
+        .def_readonly("ce0", &qpGenericData::ce0);
+
+        bp::class_<qpData>("qpData")
+        .def_readonly("CI", &qpData::CI, "Inequality constraint matrix")
+        .def_readonly("ci_lb", &qpData::ci_lb, "Inequality constraint lower bound")
+        .def_readonly("ci_ub", &qpData::ci_ub, "Inequality constraint upper bound");
+
+        bp::class_<qpEigquadprogData>("qpEigquadprogData")
+        .def_readonly("CI", &qpEigquadprogData::CI, "Inequality constraint matrix (unilateral)")
+        .def_readonly("ci0", &qpEigquadprogData::ci0, "Inequality constraint vector (stacked lower and upper bounds)");
       }
     };
 

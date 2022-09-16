@@ -62,6 +62,7 @@ namespace tsid
     };
     
     class HQPOutput;
+    class ProxQPOutput;
     
     class TSID_DLLAPI SolverHQPBase;
     
@@ -88,12 +89,45 @@ namespace tsid
     inline aligned_pair<T1,T2> make_pair(const T1 & t1, const T2 & t2)
     { return aligned_pair<T1,T2>(t1,t2); }
     
-    
+    template <typename scalar_>
+    struct QPGenericDataTpl
+    {
+      typedef Eigen::Matrix<scalar_,Eigen::Dynamic,1> Vector;
+      typedef Eigen::Matrix<scalar_,Eigen::Dynamic,Eigen::Dynamic> Matrix;
+
+      Matrix H;  // cost to minimize
+      Vector g;
+      Matrix CE;  // eq constraints
+      Vector ce0;
+    };
+
+    template <typename scalar_>
+    struct QPDataTpl : QPGenericDataTpl<scalar_>
+    {
+      typedef Eigen::Matrix<scalar_,Eigen::Dynamic,1> Vector;
+      typedef Eigen::Matrix<scalar_,Eigen::Dynamic,Eigen::Dynamic> Matrix;
+
+      Matrix CI;  // ineq constraints
+      Vector ci_lb;  // lower bound
+      Vector ci_ub;  // upper bound
+    };
+
+    template <typename scalar_>
+    struct QPEigquadprogDataTpl : QPGenericDataTpl<scalar_>
+    {
+      typedef Eigen::Matrix<scalar_,Eigen::Dynamic,1> Vector;
+      typedef Eigen::Matrix<scalar_,Eigen::Dynamic,Eigen::Dynamic> Matrix;
+
+      Matrix CI;  // ineq constraints, one-sided
+      Vector ci0;  // stack of lower abd upper bounds
+    };
+
     typedef pinocchio::container::aligned_vector< aligned_pair<double, std::shared_ptr<math::ConstraintBase> > > ConstraintLevel;
     typedef pinocchio::container::aligned_vector< aligned_pair<double, std::shared_ptr<const math::ConstraintBase> > > ConstConstraintLevel;
     typedef pinocchio::container::aligned_vector<ConstraintLevel> HQPData;
     typedef pinocchio::container::aligned_vector<ConstConstraintLevel> ConstHQPData;
     
+    typedef QPDataTpl<double> QPData;
     
   }
 }

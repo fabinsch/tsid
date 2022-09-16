@@ -24,8 +24,9 @@ namespace tsid
   {
     void exposeSolverHQuadProg()
     {
-      SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProg>::expose("SolverHQuadProg");
+      // SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProg>::expose("SolverHQuadProg");
       SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProgFast>::expose("SolverHQuadProgFast");
+      SolverHQuadProgPythonVisitor<tsid::solvers::SolverProxQP>::expose("SolverProxQP");
     }
   }
 }

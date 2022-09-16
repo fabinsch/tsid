@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 CNRS
+// Copyright (c) 2022 INRIA
 //
 // This file is part of tsid
 // tsid is free software: you can redistribute it
@@ -15,11 +15,16 @@
 // <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __invdyn_solvers_hqp_eiquadprog_fast_hpp__
-#define __invdyn_solvers_hqp_eiquadprog_fast_hpp__
+#ifndef __solvers_hqp_proxqp_hpp__
+#define __solvers_hqp_proxqp_hpp__
 
 #include "tsid/solvers/solver-HQP-base.hpp"
-#include "eiquadprog/eiquadprog-fast.hpp"
+#include <proxsuite/proxqp/dense/dense.hpp>
+#include <proxsuite/proxqp/sparse/sparse.hpp>
+#include <proxsuite/proxqp/results.hpp>
+
+using namespace proxsuite;
+using namespace proxsuite::proxqp;
 
 namespace tsid
 {
@@ -28,7 +33,7 @@ namespace tsid
     /**
      * @brief
      */
-    class TSID_DLLAPI SolverHQuadProgFast : public SolverHQPBase
+    class TSID_DLLAPI SolverProxQP : public SolverHQPBase
     {
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -39,7 +44,9 @@ namespace tsid
       typedef math::ConstRefVector ConstRefVector;
       typedef math::ConstRefMatrix ConstRefMatrix;
 
-      SolverHQuadProgFast(const std::string & name);
+      SolverProxQP(const std::string & name);
+
+      bool resize(unsigned int n, unsigned int neq, unsigned int nin);
 
       void resizeIneq(unsigned int n, unsigned int nin);
       void setIneq(unsigned int & i_in, const std::shared_ptr<math::ConstraintBase> constr);
@@ -59,25 +66,15 @@ namespace tsid
 
       void sendMsg(const std::string & s);
 
-      // <nVars, nEqCon, 2*nIneqCon>
-      eiquadprog::solvers::EiquadprogFast m_solver; 
-
-      Matrix m_H;
-      Vector m_g;
-      Matrix m_CE;
-      Vector m_ce0;
-      Matrix m_CI;  /// twice the rows because inequality constraints are bilateral
-      Vector m_ci0;
       double m_objValue;
-
       double m_hessian_regularization;
 
-      Eigen::VectorXi m_activeSet;  /// vector containing the indexes of the active inequalities
-      int m_activeSetSize;
+      dense::QP<double> m_solver;
 
-      QPEigquadprogDataTpl<double> m_qpData;
+      ProxQPOutput m_output;
+
     };
   }
 }
 
-#endif // ifndef __invdyn_solvers_hqp_eiquadprog_fast_hpp__
+#endif // ifndef __solvers_hqp_proxqp_hpp__
