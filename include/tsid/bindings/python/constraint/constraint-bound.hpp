@@ -16,8 +16,8 @@
 //
 
 
-#ifndef __tsid_python_constriant_bound_hpp__
-#define __tsid_python_constriant_bound_hpp__
+#ifndef __tsid_python_constraint_bound_hpp__
+#define __tsid_python_constraint_bound_hpp__
 
 #include "tsid/bindings/python/fwd.hpp"
 
@@ -66,14 +66,14 @@ namespace tsid
       static void expose(const std::string & class_name)
       {
         std::string doc = "Constraint Bound info.";
-        bp::class_<ConstraintBound>(class_name.c_str(),
+        bp::class_<ConstraintBound, bp::bases<math::ConstraintBase>>(class_name.c_str(),
                           doc.c_str(),
-                          bp::no_init)
-        .def(ConstraintPythonVisitor<ConstraintBound>());
+                          bp::no_init);
+        // .def(ConstraintPythonVisitor<ConstraintBound>());
       }
     };
   }
 }
 
 
-#endif // ifndef __tsid_python_constriant_bound_hpp__
+#endif // ifndef __tsid_python_constraint_bound_hpp__

@@ -17,6 +17,8 @@
 
 #include "tsid/bindings/python/solvers/expose-solvers.hpp"
 #include "tsid/bindings/python/solvers/HQPData.hpp"
+#include "pinocchio/bindings/python/utils/std-aligned-vector.hpp"
+
 
 namespace tsid
 {
@@ -31,6 +33,8 @@ namespace tsid
     void exposeHQPData()
     {
       HQPPythonVisitor<HQPDatas>::expose("HQPData");
+      pinocchio::python::StdAlignedVectorPythonVisitor<ConstraintLevel>::expose("StdVec_ConstraintLevel");
+      pinocchio::python::StdAlignedVectorPythonVisitor<HQPData>::expose("StdVec_HQPData");
     }
   }
 }
