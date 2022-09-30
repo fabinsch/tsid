@@ -29,8 +29,12 @@ PLOT_FOOT_TRAJ = 0
 PLOT_TORQUES = 0
 PLOT_JOINT_VEL = 0
 
-data = np.load(conf.DATA_FILE_TSID)
-
+try:
+    data = np.load(conf.DATA_FILE_TSID)
+except FileNotFoundError as e:
+    print("To run this walking example, you need to first execute ex_4_plan_LIPM_romeo.py and ex_4_LIPM_to_TSID.")
+    raise e
+    
 tsid_biped = TsidBiped(conf, conf.viewer)
 
 # overwrite the default solver
