@@ -91,6 +91,7 @@ namespace tsid
         m_solver = OsqpEigen::Solver();
         m_solver.data()->setNumberOfVariables(m_n);
         m_solver.data()->setNumberOfConstraints(m_neq + m_nin);
+        m_solver.settings()->setVerbosity(false);
 
         setMaximumIterations(m_maxIter);
         setSigma(m_sigma);
@@ -195,7 +196,7 @@ namespace tsid
 
       SolverOSQP::retrieveQPData(problemData);
 
-      START_PROFILER("PROFILE_OSQP_SOLUTION");
+      START_PROFILER_OSQP("PROFILE_OSQP_SOLUTION");
       //  min 0.5 * x G x + g0 x
       //  s.t.
       //  CE x + ce0 = 0
@@ -212,7 +213,7 @@ namespace tsid
       
       m_solver.initSolver();
       m_solver.solveProblem();
-      STOP_PROFILER("PROFILE_OSQP_SOLUTION");
+      STOP_PROFILER_OSQP("PROFILE_OSQP_SOLUTION");
       
       OsqpEigen::Status status = m_solver.getStatus();
       
