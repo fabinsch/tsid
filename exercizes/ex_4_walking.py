@@ -34,6 +34,14 @@ try:
 except FileNotFoundError as e:
     print("To run this walking example, you need to first execute ex_4_plan_LIPM_romeo.py and ex_4_LIPM_to_TSID.")
     raise e
+
+if GET_QP_DATA:
+    try:
+        import h5py
+    except ModuleNotFoundError:
+        print("cannot load h5py, will not save data.")
+        GET_QP_DATA = 0
+
     
 tsid_biped = TsidBiped(conf, conf.viewer)
 
@@ -133,7 +141,7 @@ for i in range(-N_pre, N+N_post):
         tsid_biped.set_com_ref(com_pos_ref[:,i], com_vel_ref[:,i], com_acc_ref[:,i])
         tsid_biped.set_LF_3d_ref(x_LF_ref[:,i], dx_LF_ref[:,i], ddx_LF_ref[:,i])
         tsid_biped.set_RF_3d_ref(x_RF_ref[:,i], dx_RF_ref[:,i], ddx_RF_ref[:,i])
-    
+        
     HQPData = tsid_biped.formulation.computeProblemData(t, q, v)
     sol = tsid_biped.solver.solve(HQPData)
     
@@ -258,7 +266,7 @@ if PLOT_COP:
 if GET_QP_DATA:
     filename = input("Provide a filename to save to data: ")
     save_dict = {}
-    print(f"QP data will be saved to: benchmark_proxqp/{filename}.npz")
+    print(f"QP data will be saved to: benchmark_proxqp/{filename}.h5")
     print(f"Number of time steps: {len(qp_data_list)}")
     print("Processing generated QP data.")
 
@@ -363,8 +371,12 @@ if GET_QP_DATA:
 
     save_dict, qpData, c = save_and_reset(save_dict, qpData, c)
     
-    np.savez(f"benchmark_proxqp/{filename}.npz", **save_dict)
+    hf = h5py.File(f"benchmark_proxqp/{filename}.h5", "w")
+    for key, value in save_dict.items():
+        hf.create_dataset(key, data=value)
 
+    # np.savez(f"benchmark_proxqp/{filename}.npz", **save_dict)
+    hf.close()
     print("Done saving")
 
 #(f, ax) = plut.create_empty_figure(3,2)
