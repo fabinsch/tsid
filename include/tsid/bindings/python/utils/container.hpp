@@ -55,10 +55,17 @@ namespace tsid
             }
             cout << ss.str() << endl;
         }
-        inline ConstraintLevel& get (){
+
+        ConstraintLevel& get (){
             return m_std_const;
         }
-    
+
+        solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> > & get_(const size_t index) {
+            if (index >= size(m_std_const))
+                throw std::runtime_error("index out of bounds");
+            return m_std_const[index];
+        }
+
         inline void append_eq (double num, std::shared_ptr<math::ConstraintEquality> i){
            m_std_const.push_back(solvers::make_pair<double, std::shared_ptr<math::ConstraintBase> >(num, i));
         }
@@ -117,6 +124,14 @@ namespace tsid
         inline bool set (HQPData data){
             m_std_hqp = data;
             return true;
+        }
+
+        solvers::aligned_pair<double, std::shared_ptr<math::ConstraintBase> > & get_(const size_t idx0, const size_t idx1) {
+            if (idx0 >= size(m_std_hqp))
+                throw std::runtime_error("index out of bounds");
+            if (idx1 >= size(m_std_hqp[idx0]))
+                throw std::runtime_error("index out of bounds");
+            return m_std_hqp[idx0][idx1];
         }
     
     private:

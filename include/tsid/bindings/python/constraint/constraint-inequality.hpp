@@ -14,8 +14,8 @@
 // tsid If not, see
 // <http://www.gnu.org/licenses/>.
 //
-#ifndef __tsid_python_constriant_inequality_hpp__
-#define __tsid_python_constriant_inequality_hpp__
+#ifndef __tsid_python_constraint_inequality_hpp__
+#define __tsid_python_constraint_inequality_hpp__
 
 #include "tsid/bindings/python/fwd.hpp"
 
@@ -67,14 +67,16 @@ namespace tsid
       static void expose(const std::string & class_name)
       {
         std::string doc = "Constraint Inequality info.";
-        bp::class_<ConstraintInequality>(class_name.c_str(),
+        bp::class_<ConstraintInequality, bp::bases<math::ConstraintBase>>(class_name.c_str(),
                           doc.c_str(),
                           bp::no_init)
-        .def(ConstraintIneqPythonVisitor<ConstraintInequality>());
+        // .def(ConstraintIneqPythonVisitor<ConstraintInequality>());
+        .def(bp::init<std::string, Eigen::MatrixXd, Eigen::VectorXd, Eigen::VectorXd>((bp::arg("name"), bp::arg("A"), bp::arg("lb"), bp::arg("ub")), "Default constructor with name and constraint."));
+
       }
     };
   }
 }
 
 
-#endif // ifndef __tsid_python_constriant_inequality_hpp__
+#endif // ifndef __tsid_python_constraint_inequality_hpp__

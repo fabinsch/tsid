@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 CNRS
+// Copyright (c) 2022 INRIA
 //
 // This file is part of tsid
 // tsid is free software: you can redistribute it
@@ -15,14 +15,9 @@
 // <http://www.gnu.org/licenses/>.
 //
 
-#include "tsid/solvers/solver-HQP-eiquadprog-fast.hpp"
+#include "tsid/solvers/solver-proxqp.hpp"
 #include "tsid/math/utils.hpp"
-#include "eiquadprog/eiquadprog-fast.hpp"
 #include "tsid/utils/stop-watch.hpp"
-
-//#define PROFILE_EIQUADPROG_FAST
-
-using namespace eiquadprog::solvers;
 
 namespace tsid
 {
@@ -30,74 +25,85 @@ namespace tsid
   {
     
     using namespace math;
-    SolverHQuadProgFast::SolverHQuadProgFast(const std::string & name):
+    SolverProxQP::SolverProxQP(const std::string & name):
     SolverHQPBase(name),
-    m_hessian_regularization(DEFAULT_HESSIAN_REGULARIZATION)
+    m_hessian_regularization(DEFAULT_HESSIAN_REGULARIZATION),
+    m_solver(1, 0, 0)  // dim of primal var needs to be strictly positiv
     {
       m_n = 0;
       m_neq = 0;
       m_nin = 0;
+      m_rho = 1e-6;
+      m_muIn = 1e-1;
+      m_muEq = 1e-3;
+      m_epsAbs = 1e-4;
+      m_epsRel = 0.;
     }
     
-    void SolverHQuadProgFast::sendMsg(const std::string & s)
+    void SolverProxQP::sendMsg(const std::string & s)
     {
-      std::cout<<"[SolverHQuadProgFast."<<m_name<<"] "<<s<<std::endl;
+      std::cout<<"[SolverProxQP."<<m_name<<"] "<<s<<std::endl;
     }
     
-    void SolverHQuadProgFast::resize(unsigned int n, unsigned int neq, unsigned int nin)
+    void SolverProxQP::resize(unsigned int n, unsigned int neq, unsigned int nin)
     {
       const bool resizeVar = n!=m_n;
       const bool resizeEq = (resizeVar || neq!=m_neq );
       const bool resizeIn = (resizeVar || nin!=m_nin );
-      
+
       if(resizeEq)
       {
-#ifndef NDEBUG
+    #ifndef NDEBUG
         sendMsg("Resizing equality constraints from "+toString(m_neq)+" to "+toString(neq));
-#endif
+    #endif
         m_qpData.CE.resize(neq, n);
         m_qpData.ce0.resize(neq);
       }
       if(resizeIn)
       {
-#ifndef NDEBUG
-        sendMsg("Resizing inequality constraints from "+toString(m_nin)+" to "+toString(nin));
-#endif
-        m_qpData.CI.resize(2*nin, n);
-        m_qpData.ci0.resize(2*nin);
+        m_qpData.CI.resize(nin, n);
+        m_qpData.ci_lb.resize(nin);
+        m_qpData.ci_ub.resize(nin);
       }
       if(resizeVar)
       {
-#ifndef NDEBUG
+    #ifndef NDEBUG
         sendMsg("Resizing Hessian from "+toString(m_n)+" to "+toString(n));
-#endif
+    #endif
         m_qpData.H.resize(n, n);
         m_qpData.g.resize(n);
         m_output.x.resize(n);
       }
-      
-      if(resizeVar || resizeIn || resizeEq)
-      {
-        m_solver.reset(n, neq, nin*2);
-        m_output.resize(n, neq, 2*nin);
-      }
-      
+
       m_n = n;
       m_neq = neq;
       m_nin = nin;
+
+      if (resizeVar || resizeEq || resizeIn)
+        m_solver = dense::QP<double>(m_n, m_neq, m_nin);
+        setMaximumIterations(m_maxIter);
+        setMuInequality(m_muIn);
+        setMuEquality(m_muEq);
+        setRho(m_rho);
+        setEpsilonAbsolute(m_epsAbs);
+        setEpsilonRelative(m_epsRel);
+    #ifndef NDEBUG
+        m_solver.settings.verbose = true;
+    #endif
     }
-    
-    void SolverHQuadProgFast::retrieveQPData(const HQPData & problemData, const bool hessianRegularization)
+
+    void SolverProxQP::retrieveQPData(const HQPData & problemData, const bool hessianRegularization)
     {
-      
+
       if(problemData.size() > 2)
           {
             assert(false && "Solver not implemented for more than 2 hierarchical levels.");
           }
-      
+          
           // Compute the constraint matrix sizes
           unsigned int neq = 0, nin = 0;
           const ConstraintLevel & cl0 = problemData[0];
+
           if(cl0.size()>0)
           {
             const unsigned int n = cl0[0].second->cols();
@@ -112,41 +118,38 @@ namespace tsid
             }
             // If necessary, resize the constraint matrices
             resize(n, neq, nin);
-
+            
             unsigned int i_eq = 0, i_in = 0;
             for(ConstraintLevel::const_iterator it=cl0.begin(); it!=cl0.end(); it++)
             {
               auto constr = it->second;
               if(constr->isEquality())
               {
+
                 m_qpData.CE.middleRows(i_eq, constr->rows()) = constr->matrix();
-                m_qpData.ce0.segment(i_eq, constr->rows())   = -constr->vector();
+                m_qpData.ce0.segment(i_eq, constr->rows())   = constr->vector();
                 i_eq += constr->rows();
 
               }
               else if(constr->isInequality())
               {
                 m_qpData.CI.middleRows(i_in, constr->rows()) = constr->matrix();
-                m_qpData.ci0.segment(i_in, constr->rows())   = -constr->lowerBound();
-                i_in += constr->rows();
-                m_qpData.CI.middleRows(i_in, constr->rows()) = -constr->matrix();
-                m_qpData.ci0.segment(i_in, constr->rows())   = constr->upperBound();
+                m_qpData.ci_lb.segment(i_in, constr->rows()) = constr->lowerBound();
+                m_qpData.ci_ub.segment(i_in, constr->rows()) = constr->upperBound();
                 i_in += constr->rows();
               }
               else if(constr->isBound())
               {
                 m_qpData.CI.middleRows(i_in, constr->rows()).setIdentity();
-                m_qpData.ci0.segment(i_in, constr->rows())   = -constr->lowerBound();
-                i_in += constr->rows();
-                m_qpData.CI.middleRows(i_in, constr->rows()) = -Matrix::Identity(m_n, m_n);
-                m_qpData.ci0.segment(i_in, constr->rows())   = constr->upperBound();
+                m_qpData.ci_lb.segment(i_in, constr->rows()) = constr->lowerBound();
+                m_qpData.ci_ub.segment(i_in, constr->rows()) = constr->upperBound();
                 i_in += constr->rows();
               }
             }
           }
           else
             resize(m_n, neq, nin);
-      
+          
           EIGEN_MALLOC_NOT_ALLOWED;
 
           // Compute the cost 
@@ -155,7 +158,7 @@ namespace tsid
             const ConstraintLevel & cl1 = problemData[1];
             m_qpData.H.setZero();
             m_qpData.g.setZero();
-        
+            
             for(ConstraintLevel::const_iterator it=cl1.begin(); it!=cl1.end(); it++)
             {
               const double & w = it->first;
@@ -177,38 +180,43 @@ namespace tsid
             }
           }
     }
-
-    const HQPOutput & SolverHQuadProgFast::solve(const HQPData & problemData)
+  
+    const HQPOutput & SolverProxQP::solve(const HQPData & problemData)
     {
 
-      SolverHQuadProgFast::retrieveQPData(problemData);
+      SolverProxQP::retrieveQPData(problemData);
 
-      START_PROFILER_EIQUADPROG_FAST(PROFILE_EIQUADPROG_SOLUTION);
-      //  min 0.5 * x G x + g0 x
+      START_PROFILER_PROXQP("PROFILE_PROXQP_SOLUTION");
+      //  min 0.5 * x^T H x + g^T x
       //  s.t.
       //  CE x + ce0 = 0
-      //  CI x + ci0 >= 0
+      //  lb <= CI x <= ub
+
       EIGEN_MALLOC_ALLOWED
-      eiquadprog::solvers::EiquadprogFast_status
-          status = m_solver.solve_quadprog(m_qpData.H, m_qpData.g,
-                                           m_qpData.CE, m_qpData.ce0,
-                                           m_qpData.CI, m_qpData.ci0,
-                                           m_output.x);
-    
-      STOP_PROFILER_EIQUADPROG_FAST(PROFILE_EIQUADPROG_SOLUTION);
+
+      m_solver.init(m_qpData.H, m_qpData.g,
+                     m_qpData.CE, m_qpData.ce0,
+                     m_qpData.CI, m_qpData.ci_lb, m_qpData.ci_ub);
+
+      m_solver.solve();
+      STOP_PROFILER_PROXQP("PROFILE_PROXQP_SOLUTION");
       
+      QPSolverOutput status = m_solver.results.info.status;
       
-      if(status == EIQUADPROG_FAST_OPTIMAL)
+      if(status == QPSolverOutput::PROXQP_SOLVED)
       {
+        // m_output.results = m_solver.results;
+        m_output.x = m_solver.results.x;
         m_output.status = HQP_STATUS_OPTIMAL;
-        m_output.lambda = m_solver.getLagrangeMultipliers();
-        m_output.iterations = m_solver.getIteratios();
-        //    m_output.activeSet = m_solver.getActiveSet().tail(2*m_nin).head(m_solver.getActiveSetSize()-m_neq);
-        m_output.activeSet = m_solver.getActiveSet().segment(m_neq, m_solver.getActiveSetSize()-m_neq);
+        m_output.lambda = m_solver.results.y;
+        m_output.iterations = m_solver.results.info.iter;
+        m_output.activeSet.setZero();
+
 #ifndef NDEBUG
-        const Vector & x = m_output.x;
+        const Vector & x = m_solver.results.x;
 
         const ConstraintLevel & cl0 = problemData[0];
+
         if(cl0.size()>0)
         {
           for(ConstraintLevel::const_iterator it=cl0.begin(); it!=cl0.end(); it++)
@@ -239,25 +247,52 @@ namespace tsid
         }
 #endif
       }
-      else if(status==EIQUADPROG_FAST_UNBOUNDED)
+      else if(status==QPSolverOutput::PROXQP_PRIMAL_INFEASIBLE)
         m_output.status = HQP_STATUS_INFEASIBLE;
-      else if(status==EIQUADPROG_FAST_MAX_ITER_REACHED)
+      else if(status==QPSolverOutput::PROXQP_MAX_ITER_REACHED)
         m_output.status = HQP_STATUS_MAX_ITER_REACHED;
-      else if(status==EIQUADPROG_FAST_REDUNDANT_EQUALITIES)
-        m_output.status = HQP_STATUS_ERROR;
+      else if(status==QPSolverOutput::PROXQP_DUAL_INFEASIBLE)
+        m_output.status = HQP_STATUS_INFEASIBLE;
       
       return m_output;
     }
     
-    double SolverHQuadProgFast::getObjectiveValue()
+    double SolverProxQP::getObjectiveValue()
     {
-      return m_solver.getObjValue();
+      return m_solver.results.info.objValue;
     }
     
-    bool SolverHQuadProgFast::setMaximumIterations(unsigned int maxIter)
+    bool SolverProxQP::setMaximumIterations(unsigned int maxIter)
     {
       SolverHQPBase::setMaximumIterations(maxIter);
-      return m_solver.setMaxIter(maxIter);
+      m_solver.settings.max_iter = maxIter;
+      return true;
+    }
+
+    void SolverProxQP::setMuInequality(double muIn)
+    {
+      m_muIn = muIn;
+      m_solver.settings.default_mu_in = m_muIn;
+    }
+    void SolverProxQP::setMuEquality(double muEq)
+    {
+      m_muEq = muEq;
+      m_solver.settings.default_mu_eq = m_muEq;
+    }
+    void SolverProxQP::setRho(double rho)
+    {
+      m_rho = rho;
+      m_solver.settings.default_rho = m_rho;
+    }
+    void SolverProxQP::setEpsilonAbsolute(double epsAbs)
+    {
+      m_epsAbs = epsAbs;
+      m_solver.settings.eps_abs = m_epsAbs;
+    }
+    void SolverProxQP::setEpsilonRelative(double epsRel)
+    {
+      m_epsRel = epsRel;
+      m_solver.settings.eps_rel = m_epsRel;
     }
   }
 }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 CNRS
+// Copyright (c) 2022 INRIA
 //
 // This file is part of tsid
 // tsid is free software: you can redistribute it
@@ -15,31 +15,22 @@
 // <http://www.gnu.org/licenses/>.
 //
 
-#include "tsid/bindings/python/solvers/expose-solvers.hpp"
-#include "tsid/bindings/python/solvers/solver-HQP-eiquadprog.hpp"
+#include "tsid/bindings/python/fwd.hpp"
+#include <pinocchio/bindings/python/utils/deprecation.hpp>
+#include "tsid/bindings/python/math/utils.hpp"
+#include "tsid/math/utils.hpp"
 
 namespace tsid
 {
   namespace python
   {
-    void exposeSolverHQuadProg()
+    void exposeMathUtils()
     {
-      SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProg>::expose("SolverHQuadProg");
-      SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProgFast>::expose("SolverHQuadProgFast");
-    }
+        namespace bp = boost::python;
+        using namespace math;
 
-    void exposeSolverProxQP()
-    {
-#ifdef TSID_PROXSUITE_FOUND
-      SolverProxQPPythonVisitor<tsid::solvers::SolverProxQP>::expose("SolverProxQP");
-#endif
-    }
-
-    void exposeSolverOSQP()
-    {
-#ifdef TSID_OSQP_FOUND
-      SolverOSQPPythonVisitor<tsid::solvers::SolverOSQP>::expose("SolverOSQP");
-#endif
+        bp::def("SE3ToVector", &SE3ToVector, bp::args("M", "vec"), "Convert the input SE3 object M to a 12D vector of floats [X,Y,Z,R11,R12,R13,R14,...] vec");
+        bp::def("vectorToSE3", &vectorToSE3, bp::args("vec", "M"), "Convert the input 12D vector of floats [X,Y,Z,R11,R12,R13,R14,...] vec to a SE3 object M");
     }
   }
 }

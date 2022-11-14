@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 CNRS
+// Copyright (c) 2022 INRIA
 //
 // This file is part of tsid
 // tsid is free software: you can redistribute it
@@ -15,14 +15,21 @@
 // <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __invdyn_solvers_hqp_eiquadprog_rt_hpp__
-#define __invdyn_solvers_hqp_eiquadprog_rt_hpp__
+#ifndef __solvers_osqp_hpp__
+#define __solvers_osqp_hpp__
 
-#include "tsid/math/fwd.hpp"
-#include "tsid/solvers/fwd.hpp"
 #include "tsid/solvers/solver-HQP-base.hpp"
+#include "OsqpEigen/OsqpEigen.h"
+#include <Eigen/Sparse>
 
-#include "eiquadprog/eiquadprog-rt.hpp"
+
+#ifdef PROFILE_OSQP
+#define START_PROFILER_OSQP(x) START_PROFILER(x)
+#define STOP_PROFILER_OSQP(x) STOP_PROFILER(x)
+#else
+#define START_PROFILER_OSQP(x)
+#define STOP_PROFILER_OSQP(x)
+#endif
 
 namespace tsid
 {
@@ -31,8 +38,7 @@ namespace tsid
     /**
      * @brief
      */
-    template<int nVars, int nEqCon, int nIneqCon>
-    class TSID_DLLAPI SolverHQuadProgRT : public SolverHQPBase
+    class TSID_DLLAPI SolverOSQP : public SolverHQPBase
     {
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -43,21 +49,20 @@ namespace tsid
       typedef math::ConstRefVector ConstRefVector;
       typedef math::ConstRefMatrix ConstRefMatrix;
 
-      SolverHQuadProgRT(const std::string & name);
+      SolverOSQP(const std::string & name);
+      SolverOSQP(const SolverOSQP & other);
 
       void resize(unsigned int n, unsigned int neq, unsigned int nin);
+
+      /** Retrieve the matrices describing a QP problem from the problem data. */
+      void retrieveQPData(const HQPData & problemData, const bool hessianRegularization = false);
+      
+      /** Return the QP data object. */
+      const QPData getQPData() const { return m_qpData; }
 
       /** Solve the given Hierarchical Quadratic Program
        */
       const HQPOutput & solve(const HQPData & problemData);
-
-      // TODO: change eiquadprog-rt to new API
-      /** Retrieve the matrices describing a QP problem from the problem data. */
-      void retrieveQPData(const HQPData & problemData, 
-                          const bool hessianRegularization = true){};
-
-      // /** Return the QP data object. */
-      // const QPDataQuadProg getQPData() const { return m_qpData; }
 
       /** Get the objective value of the last solved problem. */
       double getObjectiveValue();
@@ -65,33 +70,35 @@ namespace tsid
       /** Set the current maximum number of iterations performed by the solver. */
       bool setMaximumIterations(unsigned int maxIter);
 
+      void setSigma(double sigma);
+      void setAlpha(double alpha);
+      void setRho(double rho);
+      void setEpsilonAbsolute(double epsAbs);
+      void setEpsilonRelative(double epsRel);
+
+
     protected:
 
       void sendMsg(const std::string & s);
 
-      eiquadprog::solvers::RtEiquadprog<nVars, nEqCon, 2*nIneqCon> m_solver;
-
-      typename RtMatrixX<nVars, nVars>::d m_H;
-      typename RtVectorX<nVars>::d m_g;
-      typename RtMatrixX<nEqCon, nVars>::d m_CE;
-      typename RtVectorX<nEqCon>::d m_ce0;
-      typename RtMatrixX<2*nIneqCon, nVars>::d m_CI;  /// twice the rows because inequality constraints are bilateral
-      typename RtVectorX<2*nIneqCon>::d m_ci0;
       double m_objValue;
-
       double m_hessian_regularization;
 
-      Eigen::VectorXi m_activeSet;  /// vector containing the indexes of the active inequalities
-      int m_activeSetSize;
+      OsqpEigen::Solver m_solver;
 
-//      Eigen::FullPivLU<template RtMatrixX<nEqCon, nVars> > m_CE_lu;
-      // ColPivHouseholderQR
+      unsigned int m_neq;  /// number of equality constraints
+      unsigned int m_nin;  /// number of inequality constraints
+      unsigned int m_n;    /// number of variables
 
-      int m_neq;  /// number of equality constraints
-      int m_nin;  /// number of inequality constraints
-      int m_n;    /// number of variables
+      QPDataTpl<double> m_qpData;
+
+      double m_rho;
+      double m_sigma;
+      double m_alpha;
+      double m_epsAbs;
+      double m_epsRel;
     };
   }
 }
 
-#endif // ifndef __invdyn_solvers_hqp_eiquadprog_rt_hpp__
+#endif // ifndef __solvers_osqp_hpp__

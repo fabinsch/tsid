@@ -22,6 +22,7 @@
 
 #include "tsid/config.hh"
 #include "tsid/math/fwd.hpp"
+#include "tsid/solvers/solver-qpData.hpp"
 #include <pinocchio/container/aligned-vector.hpp>
 
 #define DEFAULT_HESSIAN_REGULARIZATION 1e-8
@@ -41,6 +42,12 @@ namespace tsid
       SOLVER_HQP_EIQUADPROG_RT = 2
 #ifdef TSID_QPMAD_FOUND
       ,SOLVER_HQP_QPMAD
+#endif
+#ifdef TSID_PROXSUITE_FOUND
+      ,SOLVER_HQP_PROXQP
+#endif
+#ifdef TSID_OSQP_FOUND
+      ,SOLVER_HQP_OSQP
 #endif
 #ifdef QPOASES_FOUND
       ,SOLVER_HQP_OASES
@@ -79,6 +86,9 @@ namespace tsid
       T1 first;
       T2 second;
       
+      bool operator==(const aligned_pair & other) const
+        { return first == other.first && second == other.second; } 
+
     };
     
     template<typename T1, typename T2>
@@ -91,6 +101,9 @@ namespace tsid
     typedef pinocchio::container::aligned_vector<ConstraintLevel> HQPData;
     typedef pinocchio::container::aligned_vector<ConstConstraintLevel> ConstHQPData;
     
+    typedef QPDataTpl<double> QPData;
+    typedef QPDataBaseTpl<double> QPDataBase;
+    typedef QPDataQuadProgTpl<double> QPDataQuadProg;
     
   }
 }

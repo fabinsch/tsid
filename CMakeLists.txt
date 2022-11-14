@@ -31,6 +31,8 @@ option(EIGEN_RUNTIME_NO_MALLOC
 option(EIGEN_NO_AUTOMATIC_RESIZING
        "If ON, it forbids automatic resizing of dynamics arrays and matrices"
        OFF)
+option(PROXQP_SUPPORT "Support using the proxqp solver" OFF)
+option(OSQP_SUPPORT "Support using the osqp solver" OFF)
 
 # Project configuration
 if(NOT INSTALL_PYTHON_INTERFACE_ONLY)
@@ -130,6 +132,7 @@ set(${PROJECT_NAME}_TRAJECTORIES_HEADERS
 set(${PROJECT_NAME}_SOLVERS_HEADERS
     include/tsid/solvers/fwd.hpp
     include/tsid/solvers/utils.hpp
+    include/tsid/solvers/solver-qpData.hpp
     include/tsid/solvers/solver-HQP-output.hpp
     include/tsid/solvers/solver-HQP-base.hpp
     include/tsid/solvers/solver-HQP-factory.hpp
@@ -139,6 +142,18 @@ set(${PROJECT_NAME}_SOLVERS_HEADERS
     include/tsid/solvers/solver-HQP-eiquadprog-rt.hpp
     include/tsid/solvers/solver-HQP-eiquadprog-rt.hxx
     include/tsid/solvers/solver-HQP-eiquadprog-fast.hpp)
+
+if(PROXQP_SUPPORT)
+  find_package(proxsuite REQUIRED)
+  list(APPEND ${PROJECT_NAME}_SOLVERS_HEADERS
+       include/tsid/solvers/solver-proxqp.hpp)
+endif()
+
+if(OSQP_SUPPORT)
+  find_package(OsqpEigen REQUIRED)
+  list(APPEND ${PROJECT_NAME}_SOLVERS_HEADERS
+       include/tsid/solvers/solver-osqp.hpp)
+endif()
 
 if(qpmad_FOUND)
   list(APPEND ${PROJECT_NAME}_SOLVERS_HEADERS
@@ -164,7 +179,8 @@ file(
   include/tsid/bindings/python/solvers/*.hpp
   include/tsid/bindings/python/tasks/*.hpp
   include/tsid/bindings/python/trajectories/*.hpp
-  include/tsid/bindings/python/utils/*.hpp)
+  include/tsid/bindings/python/utils/*.hpp
+  include/tsid/bindings/python/math/*.hpp)
 
 set(${PROJECT_NAME}_HEADERS
     include/tsid/macros.hpp
@@ -219,6 +235,14 @@ set(${PROJECT_NAME}_SOLVERS_SOURCES
     src/solvers/solver-HQP-qpoases.cpp
     src/solvers/utils.cpp)
 
+if(PROXQP_SUPPORT)
+  list(APPEND ${PROJECT_NAME}_SOLVERS_SOURCES src/solvers/solver-proxqp.cpp)
+endif()
+
+if(OSQP_SUPPORT)
+  list(APPEND ${PROJECT_NAME}_SOLVERS_SOURCES src/solvers/solver-osqp.cpp)
+endif()
+
 if(qpmad_FOUND)
   list(APPEND ${PROJECT_NAME}_SOLVERS_SOURCES src/solvers/solver-HQP-qpmad.cpp)
 endif()
@@ -249,6 +273,18 @@ add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES}
 target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
 target_link_libraries(${PROJECT_NAME} PUBLIC pinocchio::pinocchio
                                              eiquadprog::eiquadprog)
+
+if(PROXQP_SUPPORT)
+  target_include_directories(${PROJECT_NAME} PUBLIC ${proxsuite_INCLUDE_DIRS})
+  # find_package(proxsuite)
+  # target_link_libraries(${PROJECT_NAME} PUBLIC proxsuite)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC -DTSID_PROXSUITE_FOUND)
+endif()
+
+if(OSQP_SUPPORT)
+  target_link_libraries(${PROJECT_NAME} PUBLIC OsqpEigen::OsqpEigen)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC -DTSID_OSQP_FOUND)
+endif()
 
 if(qpmad_FOUND)
   target_include_directories(${PROJECT_NAME} PUBLIC ${qpmad_INCLUDE_DIRS})

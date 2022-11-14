@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 CNRS
+// Copyright (c) 2022 INRIA
 //
 // This file is part of tsid
 // tsid is free software: you can redistribute it
@@ -15,31 +15,17 @@
 // <http://www.gnu.org/licenses/>.
 //
 
-#include "tsid/bindings/python/solvers/expose-solvers.hpp"
-#include "tsid/bindings/python/solvers/solver-HQP-eiquadprog.hpp"
+#ifndef __tsid_python_math_utils_hpp__
+#define __tsid_python_math_utils_hpp__
+
 
 namespace tsid
 {
   namespace python
-  {
-    void exposeSolverHQuadProg()
-    {
-      SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProg>::expose("SolverHQuadProg");
-      SolverHQuadProgPythonVisitor<tsid::solvers::SolverHQuadProgFast>::expose("SolverHQuadProgFast");
-    }
-
-    void exposeSolverProxQP()
-    {
-#ifdef TSID_PROXSUITE_FOUND
-      SolverProxQPPythonVisitor<tsid::solvers::SolverProxQP>::expose("SolverProxQP");
-#endif
-    }
-
-    void exposeSolverOSQP()
-    {
-#ifdef TSID_OSQP_FOUND
-      SolverOSQPPythonVisitor<tsid::solvers::SolverOSQP>::expose("SolverOSQP");
-#endif
-    }
+  {    
+    void exposeMathUtils();
   }
 }
+
+
+#endif // ifndef __tsid_python_math_utils_hpp__
