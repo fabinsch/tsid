@@ -68,7 +68,11 @@ Vector & ConstraintEquality::vector()     { return m_b; }
 Vector & ConstraintEquality::lowerBound() { assert(false); return m_b; }
 Vector & ConstraintEquality::upperBound() { assert(false); return m_b;}
 
-bool ConstraintEquality::setVector(ConstRefVector b) { m_b = b; return true; }
+bool ConstraintEquality::setVector(ConstRefVector b) { 
+  std::cout << "setVector1" << std::endl;
+  m_b = b; return true; 
+  std::cout << "setVector2" << std::endl;
+  }
 bool ConstraintEquality::setLowerBound(ConstRefVector ) { assert(false); return false; }
 bool ConstraintEquality::setUpperBound(ConstRefVector ) { assert(false); return false; }
 

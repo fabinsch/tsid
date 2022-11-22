@@ -233,6 +233,7 @@ void SolverHQuadProg::retrieveQPData(const HQPData & problemData, const bool /*h
 
 const HQPOutput & SolverHQuadProg::solve(const HQPData & problemData)
 {
+  std::cout << "[eiquadprog] start solve" << std::endl;
 //#ifndef NDEBUG
 //  PRINT_MATRIX(m_qpData.H);
 //  PRINT_VECTOR(m_qpData.g);

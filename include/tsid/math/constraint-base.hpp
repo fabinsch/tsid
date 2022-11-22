@@ -20,6 +20,7 @@
 
 #include "tsid/math/fwd.hpp"
 #include <string>
+#include <iostream>
 
 namespace tsid
 {

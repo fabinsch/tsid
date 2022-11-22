@@ -190,6 +190,7 @@ namespace tsid
   
     const HQPOutput & SolverProxQP::solve(const HQPData & problemData)
     {
+      std::cout << "[proxqp] start solve" << std::endl;
 
       SolverProxQP::retrieveQPData(problemData);
 

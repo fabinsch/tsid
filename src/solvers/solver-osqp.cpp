@@ -207,6 +207,7 @@ namespace tsid
     const HQPOutput & SolverOSQP::solve(const HQPData & problemData)
     {
       typedef Eigen::SparseMatrix<double> SpMat;
+      std::cout << "[osqp] start solve" << std::endl;
 
       SolverOSQP::retrieveQPData(problemData);
 

@@ -53,8 +53,10 @@ Matrix & ConstraintBase::matrix()
 
 bool ConstraintBase::setMatrix(ConstRefMatrix A)
 {
+  std::cout << "setMatrix1" << std::endl;
   assert(m_A.cols()==A.cols());
   assert(m_A.rows()==A.rows());
   m_A = A;
+  std::cout << "setMatrix2" << std::endl;
   return true;
 }

@@ -95,9 +95,10 @@ for i in range(0, nTest):
 for name, solver in solver_list:
     print(f"Using {name}")
     for i in range(0, nTest):
-
-        cost.setMatrix(cost.matrix + hessianPerturbations[i])
+        print(f"(cost.matrix).shape: {(cost.matrix).shape}")
+        print(f"(cost.matrix + hessianPerturbations[i]).shape: {(cost.matrix + hessianPerturbations[i]).shape}")
         cost.setVector(cost.vector + gradientPerturbations[i])
+        cost.setMatrix(cost.matrix + hessianPerturbations[i])
 
         HQPoutput = solver.solve(HQPData)
 
