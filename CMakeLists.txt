@@ -32,6 +32,7 @@ option(EIGEN_NO_AUTOMATIC_RESIZING
        "If ON, it forbids automatic resizing of dynamics arrays and matrices"
        OFF)
 option(BUILD_WITH_PROXQP "Support using the proxqp solver" OFF)
+option(PROFILE_PROXQP "Profile the proxqp solver" OFF)
 option(BUILD_WITH_OSQP "Support using the osqp solver" OFF)
 
 # Project configuration
@@ -277,6 +278,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC pinocchio::pinocchio
 if(BUILD_WITH_PROXQP)
   target_compile_definitions(${PROJECT_NAME} PUBLIC -DTSID_WITH_PROXSUITE)
   target_link_libraries(${PROJECT_NAME} PUBLIC proxsuite::proxsuite-vectorized)
+  if(PROFILE_PROXQP)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC -DPROFILE_PROXQP)
+  endif()
 endif()
 
 if(BUILD_WITH_OSQP)

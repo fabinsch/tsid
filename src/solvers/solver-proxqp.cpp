@@ -85,7 +85,9 @@ namespace tsid
 
       if (resizeVar || resizeEq || resizeIn)
       {
+        START_PROFILER_PROXQP("Allocating QP");
         m_solver = dense::QP<double>(m_n, m_neq, m_nin);
+        STOP_PROFILER_PROXQP("Allocating QP");
         setMaximumIterations(m_maxIter);
         setMuInequality(m_muIn);
         setMuEquality(m_muEq);
@@ -190,10 +192,11 @@ namespace tsid
   
     const HQPOutput & SolverProxQP::solve(const HQPData & problemData)
     {
-
+      START_PROFILER_PROXQP("Retrieve Data");
       SolverProxQP::retrieveQPData(problemData);
+      STOP_PROFILER_PROXQP("Retrieve Data");
 
-      START_PROFILER_PROXQP("PROFILE_PROXQP_SOLUTION");
+      START_PROFILER_PROXQP("Solving");
       //  min 0.5 * x^T H x + g^T x
       //  s.t.
       //  CE x + ce0 = 0
@@ -201,12 +204,12 @@ namespace tsid
 
       EIGEN_MALLOC_ALLOWED
 
-      m_solver.init(m_qpData.H, m_qpData.g,
+      m_solver.update(m_qpData.H, m_qpData.g,
                      m_qpData.CE, m_qpData.ce0,
                      m_qpData.CI, m_qpData.ci_lb, m_qpData.ci_ub);
 
       m_solver.solve();
-      STOP_PROFILER_PROXQP("PROFILE_PROXQP_SOLUTION");
+      STOP_PROFILER_PROXQP("Solving");
       
       QPSolverOutput status = m_solver.results.info.status;
       
@@ -304,6 +307,13 @@ namespace tsid
       m_isVerbose = isVerbose;
       m_solver.settings.verbose = m_isVerbose;
     }
+
+#ifdef PROFILE_PROXQP
+    void SolverProxQP::report_all()
+    {
+      getProfiler().report_all();
+    }
+#endif
   }
 }
 

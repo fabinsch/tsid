@@ -55,6 +55,7 @@ namespace tsid
         .def("set_epsilon_absolute", &Solver::setEpsilonAbsolute)
         .def("set_epsilon_relative", &Solver::setEpsilonRelative)
         .def("set_verbose", &Solver::setVerbose)
+        .def("report_all", &Solver::report_all)
         ;
       }
        

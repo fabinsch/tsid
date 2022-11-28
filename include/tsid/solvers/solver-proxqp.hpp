@@ -19,6 +19,7 @@
 #define __solvers_proxqp_hpp__
 
 #include "tsid/solvers/solver-HQP-base.hpp"
+#include "tsid/utils/stop-watch.hpp"
 #include <proxsuite/proxqp/dense/dense.hpp>
 #include <proxsuite/proxqp/sparse/sparse.hpp>
 #include <proxsuite/proxqp/results.hpp>
@@ -79,6 +80,9 @@ namespace tsid
       void setEpsilonAbsolute(double epsAbs);
       void setEpsilonRelative(double epsRel);
       void setVerbose(bool isVerbose = false);
+#ifdef PROFILE_PROXQP
+      void report_all();
+#endif
 
     protected:
 
@@ -101,6 +105,10 @@ namespace tsid
       double m_epsAbs;
       double m_epsRel;
       bool m_isVerbose;
+#ifdef PROFILE_PROXQP
+      Stopwatch swatch;
+#endif
+
     };
   }
 }
